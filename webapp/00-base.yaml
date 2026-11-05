@@ -1,0 +1,27 @@
+# webapp — base layer: service account, web root, nginx, drop Debian's default site.
+groups:
+  - name: webapp
+    system: true
+
+users:
+  - name: webapp
+    system: true
+    group: webapp
+    shell: /usr/sbin/nologin
+    home: /var/www/app
+    comment: "hostcd webapp service account"
+
+packages:
+  - name: nginx
+
+directories:
+  - path: /var/www/app
+    owner: webapp
+    group: webapp
+    mode: "0755"
+
+files:
+  # remove the distro default server so our vhost is the one answering
+  - path: /etc/nginx/sites-enabled/default
+    state: absent
+    notify: [nginx]

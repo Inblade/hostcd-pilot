@@ -1,0 +1,10 @@
+# webapp — tuning layer: a kernel setting and a watchdog cron (more resource kinds).
+sysctls:
+  - key: net.core.somaxconn
+    value: "1024"
+
+crons:
+  - name: webapp-nginx-watchdog
+    schedule: "*/5 * * * *"
+    user: root
+    command: "systemctl is-active --quiet nginx || systemctl restart nginx"

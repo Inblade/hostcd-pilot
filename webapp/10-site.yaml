@@ -1,0 +1,65 @@
+# webapp — site layer. Templated with host facts + labels ("values").
+# Required host labels (missingkey=error — render fails if any is absent):
+#   app_name, env, http_port, max_body_mb, owner_team
+files:
+  - path: /etc/nginx/conf.d/webapp.conf
+    template: true
+    owner: root
+    group: root
+    mode: "0644"
+    notify: [nginx]
+    content: |
+      # Rendered by hostcd for {{ .Hostname }} ({{ .OSID }} {{ .OSVersion }})
+      server {
+          listen {{ .Labels.http_port }} default_server;
+          listen [::]:{{ .Labels.http_port }} default_server;
+          server_name {{ .Labels.app_name }}.{{ .Labels.env }}.local;
+
+          root /var/www/app;
+          index index.html;
+          client_max_body_size {{ .Labels.max_body_mb }}m;
+
+          location = /healthz {
+              default_type text/plain;
+              return 200 "ok\n";
+          }
+          location / {
+              try_files $uri $uri/ =404;
+          }
+      }
+
+  - path: /var/www/app/index.html
+    template: true
+    owner: webapp
+    group: webapp
+    mode: "0644"
+    content: |
+      <!doctype html>
+      <html lang="en"><head><meta charset="utf-8">
+      <title>{{ .Labels.app_name }} · {{ .Labels.env }}</title>
+      <style>
+        body{font:16px/1.6 system-ui,-apple-system,sans-serif;max-width:720px;margin:48px auto;padding:0 20px;background:#0d0e12;color:#e9ecf1}
+        h1{color:#e98a52;margin-bottom:4px} small{color:#9aa3b2}
+        table{border-collapse:collapse;margin-top:18px;width:100%}
+        td,th{border:1px solid #242732;padding:7px 12px;text-align:left}
+        th{background:#14161c}
+      </style></head><body>
+      <h1>{{ .Labels.app_name }} <small>· {{ .Labels.env }}</small></h1>
+      <p>Served by <strong>{{ .Hostname }}</strong>, reconciled to Git by hostcd.</p>
+      <table>
+        <tr><th>fact / value</th><th>rendered on this host</th></tr>
+        <tr><td>hostname</td><td>{{ .Hostname }}</td></tr>
+        <tr><td>os</td><td>{{ .OSID }} {{ .OSVersion }} ({{ .OSFamily }})</td></tr>
+        <tr><td>app_name</td><td>{{ .Labels.app_name }}</td></tr>
+        <tr><td>env</td><td>{{ .Labels.env }}</td></tr>
+        <tr><td>http_port</td><td>{{ .Labels.http_port }}</td></tr>
+        <tr><td>max_body_mb</td><td>{{ .Labels.max_body_mb }}</td></tr>
+        <tr><td>owner_team</td><td>{{ .Labels.owner_team }}</td></tr>
+      </table>
+      <p>Change a label (value) on the host → hostcd re-renders this page on the next sync.</p>
+      </body></html>
+
+services:
+  - name: nginx
+    enabled: true
+    state: running
