@@ -1,6 +1,47 @@
-# hostcd host-config: install and keep Redis running (Ubuntu).
+# hostcd host-config: install Redis, OWN its config in Git, restart on change.
+#
+# This goes beyond package+service: the whole redis.conf is managed and templated
+# with host facts. Edit it here in Git and the file's `notify` restarts
+# redis-server on the next sync (change-config-via-Git → rollout). Hand-edit the
+# file on the host and self-heal puts it back. Apply order is packages → files →
+# services, so the `redis` user exists before the config is written.
 packages:
   - name: redis-server
+
+files:
+  - path: /etc/redis/redis.conf
+    template: true
+    owner: redis
+    group: redis
+    mode: "0640"
+    notify: [redis-server]
+    content: |
+      # Managed by hostcd for {{ .Hostname }} ({{ .OSID }} {{ .OSVersion }}, family {{ .OSFamily }}).
+      # Edits made directly on the host are reverted by self-heal — change it in Git.
+      bind 127.0.0.1 -::1
+      protected-mode yes
+      port 6379
+      tcp-backlog 511
+      timeout 0
+      tcp-keepalive 300
+      daemonize no
+      supervised systemd
+      pidfile /run/redis/redis-server.pid
+      loglevel notice
+      logfile /var/log/redis/redis-server.log
+      databases 16
+      save 900 1
+      save 300 10
+      save 60 10000
+      stop-writes-on-bgsave-error yes
+      rdbcompression yes
+      rdbchecksum yes
+      dbfilename dump.rdb
+      dir /var/lib/redis
+      appendonly no
+      maxmemory 256mb
+      maxmemory-policy allkeys-lru
+
 services:
   - name: redis-server
     enabled: true

@@ -1,6 +1,32 @@
-# hostcd host-config: install and keep PostgreSQL running (Ubuntu).
+# hostcd host-config: install PostgreSQL, add a MANAGED tuning drop-in, restart on change.
+#
+# PostgreSQL's postgresql.conf loads conf.d/*.conf via `include_dir 'conf.d'`, so
+# this drop-in is the safe way to own tuning in Git without replacing the whole
+# config. It is templated with host facts; the file's `notify` restarts the
+# cluster when it changes. The path assumes PG 16 (Ubuntu 24.04/24.10 default) —
+# change the major-version segment for another release.
 packages:
   - name: postgresql
+
+files:
+  - path: /etc/postgresql/16/main/conf.d/hostcd.conf
+    template: true
+    owner: postgres
+    group: postgres
+    mode: "0644"
+    notify: [postgresql]
+    content: |
+      # Managed by hostcd for {{ .Hostname }} ({{ .OSID }} {{ .OSVersion }}).
+      # conf.d drop-in — loaded by postgresql.conf via include_dir 'conf.d'.
+      listen_addresses = 'localhost'
+      max_connections = 100
+      shared_buffers = 128MB
+      work_mem = 4MB
+      maintenance_work_mem = 64MB
+      log_timezone = 'UTC'
+      log_line_prefix = '%m [%p] hostcd@{{ .Hostname }} '
+      log_min_duration_statement = 500
+
 services:
   - name: postgresql
     enabled: true
