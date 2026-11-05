@@ -1,0 +1,7 @@
+# hostcd host-config: install and keep PostgreSQL running (Ubuntu).
+packages:
+  - name: postgresql
+services:
+  - name: postgresql
+    enabled: true
+    state: running

@@ -1,0 +1,7 @@
+# hostcd host-config: install and keep Redis running (Ubuntu).
+packages:
+  - name: redis-server
+services:
+  - name: redis-server
+    enabled: true
+    state: running
