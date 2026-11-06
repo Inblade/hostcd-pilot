@@ -45,7 +45,7 @@ files:
         th{background:#14161c}
       </style></head><body>
       <h1>{{ .Labels.app_name }} <small>· {{ .Labels.env }}</small></h1>
-      <p>Served by <strong>{{ .Hostname }}</strong>, reconciled to Git by hostcd.</p>
+      <p>Served by <strong>{{ .Hostname }}</strong>, reconciled to Git by hostcd. [rollback-demo-v2]</p>
       <table>
         <tr><th>fact / value</th><th>rendered on this host</th></tr>
         <tr><td>hostname</td><td>{{ .Hostname }}</td></tr>
