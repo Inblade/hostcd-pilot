@@ -1,0 +1,14 @@
+# ansible-migrated — scope migrated from a scheduled Ansible playbook to hostcd.
+# Same resources the cron playbook managed (htop + /etc/ansible-demo.conf), now
+# continuously reconciled with visible drift and self-heal.
+packages:
+  - name: htop
+files:
+  - path: /etc/ansible-demo.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # managed by hostcd (migrated from scheduled Ansible)
+      max_sessions = 10
+      banner = hostcd
