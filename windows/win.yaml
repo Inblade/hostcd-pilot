@@ -1,0 +1,15 @@
+# windows host-config: a templated file + a Windows service, reconciled on Server 2025.
+# Proves hostcd Windows convergence: the file kind writes under C:\ (POSIX owner/mode
+# are no-ops on Windows) and the service kind drives the Windows SCM (Get/Set-Service).
+files:
+  - path: C:\hostcd\managed\hostcd-info.txt
+    template: true
+    content: |
+      Managed by hostcd for {{ .Hostname }} (family {{ .OSFamily }}).
+      Hand-edits on the host are reverted by self-heal — change this in Git.
+      os: {{ .OSID }} {{ .OSVersion }}
+
+services:
+  - name: w32time
+    enabled: true
+    state: running
