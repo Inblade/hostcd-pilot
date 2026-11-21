@@ -18,6 +18,7 @@ files:
     content: |
       # Managed by hostcd for {{ .Hostname }} ({{ .OSID }} {{ .OSVersion }}, family {{ .OSFamily }}).
       # Edits made directly on the host are reverted by self-heal — change it in Git.
+      # failure-test marker (approval gate run 3, 2026-11-21) — reverted after the test
       bind 127.0.0.1 -::1
       protected-mode yes
       port 6379
