@@ -2,6 +2,24 @@
 
 Host-config manifests for a hostcd pilot on Frankfurt-2 Ubuntu VMs.
 
+## Commits must be signed
+
+The pilot server runs with `-allowed-signers`: it deploys a commit only if it is
+signed by a key in `/etc/hostcd/allowed_signers` on the control plane (today the
+`gitops@hostcd-pilot` SSH key, `~/.ssh/hostcd-pilot-gitops`). An unsigned head is
+rejected and hosts stay on the last verified revision. Commits made in the GitHub
+web editor are not accepted. In your clone, once:
+
+```bash
+git config gpg.format ssh
+git config user.signingkey ~/.ssh/hostcd-pilot-gitops.pub
+git config commit.gpgsign true
+```
+
+Check before pushing: `git log --show-signature -1`. To allow another person's key,
+add a line `name@example namespaces="git" ssh-ed25519 AAAA…` to the server's
+`allowed_signers` and restart `hostcd-server`.
+
 ## Apps
 
 - **`redis/`** — installs `redis-server`, keeps the service enabled + running.
